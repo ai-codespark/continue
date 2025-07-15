@@ -35,6 +35,10 @@ const esbuildConfig = {
             throw new Error(result.errors);
           } else {
             try {
+              // Ensure build directory exists
+              if (!fs.existsSync('./build')) {
+                fs.mkdirSync('./build', { recursive: true });
+              }
               fs.writeFileSync(
                 "./build/meta.json",
                 JSON.stringify(result.metafile, null, 2),
