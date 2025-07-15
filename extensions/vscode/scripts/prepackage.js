@@ -78,9 +78,8 @@ void (async () => {
 
   process.chdir(path.join(continueDir, "gui"));
 
-  if (isInGitHubAction) {
-    execCmdSync("npm run build");
-  }
+  // Always build the GUI, regardless of environment
+  execCmdSync("npm run build");
 
   // Copy over the dist folder to the JetBrains extension //
   const intellijExtensionWebviewPath = path.join(
