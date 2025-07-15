@@ -1,56 +1,90 @@
 import { streamSse } from "@continuedev/fetch";
-import { CompletionOptions, LLMOptions } from "../../index.js";
-import { BaseLLM } from "../index.js";
+import { Chunk, CompletionOptions, LLMOptions } from "../../index.js";
+import { osModelsEditPrompt } from "../templates/edit.js";
 
-class LiteLLM extends BaseLLM {
+import OpenAI from "./OpenAI.js";
+
+class LiteLLM extends OpenAI {
   static providerName = "litellm";
   static defaultOptions: Partial<LLMOptions> = {
     apiBase: "http://127.0.0.1:4000/",
+    promptTemplates: {
+      edit: osModelsEditPrompt,
+    },
+    useLegacyCompletionsEndpoint: false,
   };
+  maxStopWords: number | undefined = 16;
 
-  private _convertArgs(options: CompletionOptions, prompt: string) {
-    const finalOptions = {
-      n_predict: options.maxTokens,
-      frequency_penalty: options.frequencyPenalty,
-      presence_penalty: options.presencePenalty,
-      min_p: options.minP,
-      mirostat: options.mirostat,
-      stop: options.stop,
-      top_k: options.topK,
-      top_p: options.topP,
-      temperature: options.temperature,
-    };
-
-    return finalOptions;
+  supportsFim(): boolean {
+    return true;
   }
 
-  protected async *_streamComplete(
-    prompt: string,
+  async *_streamFim(
+    prefix: string,
+    suffix: string,
     signal: AbortSignal,
     options: CompletionOptions,
   ): AsyncGenerator<string> {
-    const headers = {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${this.apiKey}`,
-      ...this.requestOptions?.headers,
-    };
-
-    const resp = await this.fetch(new URL("completion", this.apiBase), {
+    const endpoint = new URL("completions", this.apiBase);
+    const resp = await this.fetch(endpoint, {
       method: "POST",
-      headers,
       body: JSON.stringify({
-        prompt,
+        model: options.model,
+        prompt: prefix,
+        suffix,
+        max_tokens: options.maxTokens,
+        temperature: options.temperature,
+        top_p: options.topP,
+        frequency_penalty: options.frequencyPenalty,
+        presence_penalty: options.presencePenalty,
+        stop: options.stop,
         stream: true,
-        ...this._convertArgs(options, prompt),
       }),
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${this.apiKey}`,
+      },
       signal,
     });
-
-    for await (const value of streamSse(resp)) {
-      if (value.content) {
-        yield value.content;
-      }
+    for await (const chunk of streamSse(resp)) {
+      yield chunk.choices[0].text;
     }
+  }
+
+  async rerank(query: string, chunks: Chunk[]): Promise<number[]> {
+    if (!query || query.trim() === "") {
+      console.warn("[LiteLLM] rerank: query is empty");
+      return [];
+    }
+
+    if (!chunks || chunks.length === 0) {
+      console.warn("[LiteLLM] rerank: chunks is empty");
+      return [];
+    }
+
+    const endpoint = new URL("rerank", this.apiBase);
+    const resp = await this.fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${this.apiKey}`,
+      },
+      body: JSON.stringify({
+        model: this.model,
+        query,
+        documents: chunks.map((chunk) => chunk.content),
+      }),
+    });
+
+    if (!resp.ok) {
+      throw new Error(await resp.text());
+    }
+
+    const data = (await resp.json()) as any;
+    const results = data.results.sort((a: any, b: any) => a.index - b.index);
+    return results.map((result: any) => result.relevance_score);
   }
 }
 
