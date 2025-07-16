@@ -48,9 +48,13 @@ jobs:
       - name: Build packages (Windows)
         run: ./scripts/build-packages.ps1
         if: matrix.os == 'windows-latest'
+        env:
+          LITELLM_API_BASE: ${{ secrets.LITELLM_API_BASE }}
       - name: Build packages (Unix)
         run: ./scripts/build-packages.sh
         if: matrix.os != 'windows-latest'
+        env:
+          LITELLM_API_BASE: ${{ secrets.LITELLM_API_BASE }}
       - name: Install extension Dependencies
         run: |
           cd extensions/vscode
@@ -61,11 +65,15 @@ jobs:
         run: |
           cd gui
           npm ci
+        env:
+          LITELLM_API_BASE: ${{ secrets.LITELLM_API_BASE }}
       - name: Install Core Dependencies
         run: |
           cd core
           npm ci
           npm i vectordb
+        env:
+          LITELLM_API_BASE: ${{ secrets.LITELLM_API_BASE }}
       - name: Set var for environment info
         shell: pwsh
         run: echo "target=${{ matrix.platform }}-${{ matrix.arch }}" >> $env:GITHUB_ENV
@@ -79,6 +87,8 @@ jobs:
         run: |
           cd extensions/vscode
           npm install -f esbuild
+        env:
+          LITELLM_API_BASE: ${{ secrets.LITELLM_API_BASE }}
       - name: Package the extension
         run: cd extensions/vscode && npx vsce package --no-dependencies --target ${{ env.target }}
         env:

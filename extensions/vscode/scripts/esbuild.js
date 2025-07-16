@@ -22,7 +22,10 @@ const esbuildConfig = {
   // To allow import.meta.path for transformers.js
   // https://github.com/evanw/esbuild/issues/1492#issuecomment-893144483
   inject: ["./scripts/importMetaUrl.js"],
-  define: { "import.meta.url": "importMetaUrl" },
+  define: {
+    "import.meta.url": "importMetaUrl",
+    "process.env.LITELLM_API_BASE": `"${process.env.LITELLM_API_BASE || "http://127.0.0.1:4000"}"`,
+  },
   supported: { "dynamic-import": false },
   metafile: true,
   plugins: [
