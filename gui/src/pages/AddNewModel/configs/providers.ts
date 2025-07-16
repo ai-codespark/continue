@@ -1003,7 +1003,7 @@ To get started, [register](https://dataplatform.cloud.ibm.com/registration/stepo
     icon: "litellm.png",
     description: "LiteLLM provides LLM models.",
     longDescription:
-      "To get started with LiteLLM, obtain an API key from their website [here](http://127.0.0.1:4000/).",
+      `To get started with LiteLLM, obtain an API key from their website [here](${process.env.LITELLM_API_BASE || "http://127.0.0.1:4000"}/ui).`,
     tags: [ModelProviderTags.RequiresApiKey, ModelProviderTags.OpenSource],
     collectInputFor: [
       {
@@ -1023,6 +1023,6 @@ To get started, [register](https://dataplatform.cloud.ibm.com/registration/stepo
         },
       },
     ],
-    apiKeyUrl: "http://127.0.0.1:4000",
+    apiKeyUrl: `${process.env.LITELLM_API_BASE || "http://127.0.0.1:4000"}/ui`,
   },
 };

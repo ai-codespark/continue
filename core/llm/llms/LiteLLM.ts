@@ -7,7 +7,7 @@ import OpenAI from "./OpenAI.js";
 class LiteLLM extends OpenAI {
   static providerName = "litellm";
   static defaultOptions: Partial<LLMOptions> = {
-    apiBase: "http://127.0.0.1:4000/",
+    apiBase: process.env.LITELLM_API_BASE || "http://127.0.0.1:4000",
     promptTemplates: {
       edit: osModelsEditPrompt,
     },

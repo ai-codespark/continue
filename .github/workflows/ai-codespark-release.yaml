@@ -73,12 +73,16 @@ jobs:
         run: |
           cd extensions/vscode
           npm run prepackage -- --target ${{ env.target }}
+        env:
+          LITELLM_API_BASE: ${{ secrets.LITELLM_API_BASE }}
       - name: Re-install esbuild
         run: |
           cd extensions/vscode
           npm install -f esbuild
       - name: Package the extension
         run: cd extensions/vscode && npx vsce package --no-dependencies --target ${{ env.target }}
+        env:
+          LITELLM_API_BASE: ${{ secrets.LITELLM_API_BASE }}
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ env.target }}-vsix
