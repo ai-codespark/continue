@@ -77,6 +77,7 @@ const PROVIDER_SUPPORTS_IMAGES: string[] = [
   "nebius",
   "ovhcloud",
   "watsonx",
+  "litellm",
 ];
 
 const MODEL_SUPPORTS_IMAGES: string[] = [

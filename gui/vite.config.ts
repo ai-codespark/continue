@@ -6,6 +6,9 @@ import { defineConfig } from "vitest/config";
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  define: {
+    'process.env.LITELLM_API_BASE': `"${process.env.LITELLM_API_BASE || "http://127.0.0.1:4000"}"`,
+  },
   build: {
     // Change the output .js filename to not include a hash
     rollupOptions: {

@@ -1,0 +1,126 @@
+name: ai-codespark-release
+
+on:
+  release:
+    types:
+      - created
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            platform: win32
+            arch: x64
+            npm_config_arch: x64
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64
+            npm_config_arch: x64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Checkout tag
+        run: git checkout ${GITHUB_REF#refs/tags/}
+      - name: Use Node.js from .nvmrc
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+      - name: Cache extension node_modules
+        uses: actions/cache@v3
+        with:
+          path: extensions/vscode/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('extensions/vscode/package-lock.json') }}
+      - name: Cache core node_modules
+        uses: actions/cache@v3
+        with:
+          path: core/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('core/package-lock.json') }}
+      - name: Cache gui node_modules
+        uses: actions/cache@v3
+        with:
+          path: gui/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('gui/package-lock.json') }}
+      - name: Build packages (Windows)
+        run: ./scripts/build-packages.ps1
+        if: matrix.os == 'windows-latest'
+        env:
+          LITELLM_API_BASE: ${{ secrets.LITELLM_API_BASE }}
+      - name: Build packages (Unix)
+        run: ./scripts/build-packages.sh
+        if: matrix.os != 'windows-latest'
+        env:
+          LITELLM_API_BASE: ${{ secrets.LITELLM_API_BASE }}
+      - name: Install extension Dependencies
+        run: |
+          cd extensions/vscode
+          npm ci
+        env:
+          GITHUB_TOKEN: ${{ secrets.AI_CODESPARK_TOKEN }}
+      - name: Install gui Dependencies
+        run: |
+          cd gui
+          npm ci
+        env:
+          LITELLM_API_BASE: ${{ secrets.LITELLM_API_BASE }}
+      - name: Install Core Dependencies
+        run: |
+          cd core
+          npm ci
+          npm i vectordb
+        env:
+          LITELLM_API_BASE: ${{ secrets.LITELLM_API_BASE }}
+      - name: Set var for environment info
+        shell: pwsh
+        run: echo "target=${{ matrix.platform }}-${{ matrix.arch }}" >> $env:GITHUB_ENV
+      - name: Prepackage the extension
+        run: |
+          cd extensions/vscode
+          npm run prepackage -- --target ${{ env.target }}
+        env:
+          LITELLM_API_BASE: ${{ secrets.LITELLM_API_BASE }}
+      - name: Re-install esbuild
+        run: |
+          cd extensions/vscode
+          npm install -f esbuild
+        env:
+          LITELLM_API_BASE: ${{ secrets.LITELLM_API_BASE }}
+      - name: Package the extension
+        run: cd extensions/vscode && npx vsce package --no-dependencies --target ${{ env.target }}
+        env:
+          LITELLM_API_BASE: ${{ secrets.LITELLM_API_BASE }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.target }}-vsix
+          path: "extensions/vscode/*.vsix"
+
+  release:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    needs:
+      - build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: "*-vsix"
+          path: vsix-artifacts
+          merge-multiple: true
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: |
+            vsix-artifacts/*.vsix
+          token: ${{ secrets.AI_CODESPARK_TOKEN }}
+          repository: ai-codespark/continue
