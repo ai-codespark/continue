@@ -58,7 +58,7 @@ jobs:
       - name: Install gui Dependencies
         run: |
           cd gui
-          npm ci
+          npm run build
         env:
           LITELLM_API_BASE: ${{ secrets.LITELLM_API_BASE }}
       - name: Install Core Dependencies
