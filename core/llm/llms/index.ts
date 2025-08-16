@@ -30,6 +30,7 @@ import HuggingFaceTEIEmbeddingsProvider from "./HuggingFaceTEI";
 import HuggingFaceTGI from "./HuggingFaceTGI";
 import Inception from "./Inception";
 import Kindo from "./Kindo";
+import LiteLLM from "./LiteLLM";
 import LlamaCpp from "./LlamaCpp";
 import Llamafile from "./Llamafile";
 import LlamaStack from "./LlamaStack";
@@ -116,6 +117,7 @@ export const LLMClasses = [
   Inception,
   Voyage,
   LlamaStack,
+  LiteLLM,
 ];
 
 export async function llmFromDescription(

@@ -14,6 +14,9 @@ export default defineConfig({
       project: "continue",
     }),
   ],
+  define: {
+    'process.env.LITELLM_API_BASE': `"${process.env.LITELLM_API_BASE || "http://127.0.0.1:4000"}"`,
+  },
   build: {
     sourcemap: true,
 
