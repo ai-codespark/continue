@@ -130,6 +130,7 @@ const PROVIDER_SUPPORTS_IMAGES: string[] = [
   "ovhcloud",
   "watsonx",
   "zAI",
+  "litellm",
 ];
 
 const MODEL_SUPPORTS_IMAGES: RegExp[] = [
