@@ -132,6 +132,7 @@ const PROVIDER_SUPPORTS_IMAGES: string[] = [
   "watsonx",
   "zAI",
   "tensorix",
+  "litellm",
 ];
 
 const MODEL_SUPPORTS_IMAGES: RegExp[] = [

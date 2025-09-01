@@ -31,13 +31,14 @@ import HuggingFaceTEIEmbeddingsProvider from "./HuggingFaceTEI";
 import HuggingFaceTGI from "./HuggingFaceTGI";
 import Inception from "./Inception";
 import Kindo from "./Kindo";
+import Lemonade from "./Lemonade";
+import LiteLLM from "./LiteLLM";
 import LlamaCpp from "./LlamaCpp";
 import Llamafile from "./Llamafile";
 import LlamaStack from "./LlamaStack";
-import Lemonade from "./Lemonade";
 import LMStudio from "./LMStudio";
-import Mistral from "./Mistral";
 import Mimo from "./Mimo";
+import Mistral from "./Mistral";
 import MockLLM from "./Mock";
 import Moonshot from "./Moonshot";
 import Msty from "./Msty";
@@ -130,6 +131,7 @@ export const LLMClasses = [
   LlamaStack,
   TARS,
   zAI,
+  LiteLLM,
 ];
 
 export async function llmFromDescription(
