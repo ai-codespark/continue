@@ -1,4 +1,9 @@
-import { ChatMessage, ModelCapability, TemplateType } from "../index.js";
+import {
+  ChatMessage,
+  ModelCapability,
+  ModelDescription,
+  TemplateType,
+} from "../index.js";
 import { NEXT_EDIT_MODELS } from "./constants.js";
 
 import {
@@ -127,6 +132,26 @@ function modelSupportsImages(
 
   return false;
 }
+
+function modelSupportsReasoning(
+  model: ModelDescription | null | undefined,
+): boolean {
+  if (!model) {
+    return false;
+  }
+  if ("anthropic" === model.underlyingProviderName) {
+    return true;
+  }
+  if (model.model.includes("deepseek-r")) {
+    return true;
+  }
+  if (model.completionOptions?.reasoning) {
+    // Reasoning support is forced at the config level. Model might not necessarily support it though!
+    return true;
+  }
+  return false;
+}
+
 const PARALLEL_PROVIDERS: string[] = [
   "anthropic",
   "bedrock",
@@ -422,4 +447,5 @@ export {
   llmCanGenerateInParallel,
   modelSupportsImages,
   modelSupportsNextEdit,
+  modelSupportsReasoning,
 };
