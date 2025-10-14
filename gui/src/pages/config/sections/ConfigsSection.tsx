@@ -8,12 +8,12 @@ import { IdeMessengerContext } from "../../../context/IdeMessenger";
 import { useAppSelector } from "../../../redux/hooks";
 import { ConfigHeader } from "../components/ConfigHeader";
 
-export function AgentsSection() {
+export function ConfigsSection() {
   const { profiles, selectedProfile } = useAuth();
   const ideMessenger = useContext(IdeMessengerContext);
   const configError = useAppSelector((state) => state.config.configError);
 
-  function handleAddAgent() {
+  function handleAddConfig() {
     void ideMessenger.request("config/newAssistantFile", undefined);
   }
 
@@ -24,9 +24,9 @@ export function AgentsSection() {
   return (
     <>
       <ConfigHeader
-        title="Agents"
-        onAddClick={handleAddAgent}
-        addButtonTooltip="Add agent"
+        title="Configs"
+        onAddClick={handleAddConfig}
+        addButtonTooltip="Add config"
       />
 
       <Card>
@@ -34,16 +34,25 @@ export function AgentsSection() {
           profiles.map((profile, index) => {
             const isSelected = profile.id === selectedProfile?.id;
             const errors = isSelected ? configError : profile.errors;
+            const hasFatalErrors =
+              errors && errors.some((error) => error.fatal);
+            const hasErrors = errors && errors.length > 0;
             return (
               <div key={profile.id}>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-3">
                   <div className="flex items-baseline gap-3">
                     <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center">
                       <AssistantIcon assistant={profile} />
                     </div>
                     <div className="flex flex-1 flex-col gap-2">
                       <h3
-                        className={`my-2 text-sm font-medium ${errors && errors.length > 0 ? "text-error" : ""}`}
+                        className={`my-2 text-sm font-medium ${
+                          hasFatalErrors
+                            ? "text-error"
+                            : hasErrors
+                              ? "text-yellow-500"
+                              : ""
+                        }`}
                       >
                         {profile.title}
                       </h3>
@@ -51,8 +60,20 @@ export function AgentsSection() {
                         <div className="space-y-1 overflow-hidden">
                           {errors.map((error, errorIndex) => (
                             <div
+                              onClick={(e) => {
+                                if (error.uri) {
+                                  e.stopPropagation();
+                                  ideMessenger.post("openFile", {
+                                    path: error.uri,
+                                  });
+                                }
+                              }}
                               key={errorIndex}
-                              className="text-error bg-error/10 rounded py-1 pr-2 text-xs"
+                              className={`${
+                                error.fatal
+                                  ? "text-error bg-error/10"
+                                  : "bg-yellow-500/10 text-yellow-500"
+                              } rounded border border-solid border-transparent px-2 py-1 text-xs ${error.uri ? "cursor-pointer " + (error.fatal ? "hover:border-error" : "hover:border-yellow-500") : ""}`}
                             >
                               {error.message}
                             </div>
@@ -61,7 +82,7 @@ export function AgentsSection() {
                       )}
                     </div>
                   </div>
-                  <ToolTip content="Configure agent">
+                  <ToolTip content="Open configuration">
                     <Button
                       onClick={() => handleConfigureAgent(profile.id)}
                       variant="ghost"
