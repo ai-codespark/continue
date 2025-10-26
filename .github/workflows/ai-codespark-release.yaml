@@ -14,6 +14,10 @@ jobs:
             platform: linux
             arch: x64
             npm_config_arch: x64
+          - os: windows-latest
+            platform: win32
+            arch: x64
+            npm_config_arch: x64
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -45,18 +49,6 @@ jobs:
         run: node ./scripts/build-packages.js
         env:
           LITELLM_API_BASE: ${{ secrets.LITELLM_API_BASE }}
-      - name: Install extension Dependencies
-        run: |
-          cd extensions/vscode
-          npm ci
-        env:
-          GITHUB_TOKEN: ${{ secrets.AI_CODESPARK_TOKEN }}
-      - name: Install gui Dependencies
-        run: |
-          cd gui
-          npm run build
-        env:
-          LITELLM_API_BASE: ${{ secrets.LITELLM_API_BASE }}
       - name: Install Core Dependencies
         run: |
           cd core
@@ -64,6 +56,19 @@ jobs:
           npm i vectordb
         env:
           LITELLM_API_BASE: ${{ secrets.LITELLM_API_BASE }}
+      - name: Install gui Dependencies
+        run: |
+          cd gui
+          npm ci
+          npm run build
+        env:
+          LITELLM_API_BASE: ${{ secrets.LITELLM_API_BASE }}
+      - name: Install extension Dependencies
+        run: |
+          cd extensions/vscode
+          npm ci
+        env:
+          GITHUB_TOKEN: ${{ secrets.AI_CODESPARK_TOKEN }}
       - name: Set var for environment info
         shell: pwsh
         run: echo "target=${{ matrix.platform }}-${{ matrix.arch }}" >> $env:GITHUB_ENV
