@@ -2,7 +2,7 @@
   "name": "continue",
   "icon": "media/icon.png",
   "author": "Continue Dev, Inc",
-  "version": "1.3.25",
+  "version": "1.3.26",
   "repository": {
     "type": "git",
     "url": "https://github.com/continuedev/continue"
@@ -259,7 +259,7 @@
       {
         "command": "continue.viewLogs",
         "category": "Continue",
-        "title": "View History",
+        "title": "View Logs",
         "group": "Continue"
       },
       {
