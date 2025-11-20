@@ -202,6 +202,9 @@ function modelSupportsReasoning(
   ) {
     return true;
   }
+  if (model.model.includes("command-a-reasoning")) {
+    return true;
+  }
   if (model.model.includes("deepseek-r")) {
     return true;
   }
